@@ -1,13 +1,48 @@
 {
     "name": "cortexpe/commando",
-    "description": "A Command Framework virion for PocketMine-MP ",
+    "description": "A command framework virion for Axolotl-PM",
     "type": "library",
     "license": "LGPL-3.0-only",
+    "authors": [
+        {
+            "name": "AxolotlBucketLabs"
+        },
+        {
+            "name": "CortexPE",
+            "homepage": "https://CortexPE.xyz"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/axolotl-pm/PocketMine-MP",
+            "no-api": true
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/AxolotlBucketLabs/SimplePacketHandler",
+            "no-api": true
+        }
+    ],
     "autoload": {
         "psr-4": {"CortexPE\\Commando\\": ["src/CortexPE/Commando/"]}
     },
     "require": {
-        "pocketmine/pocketmine-mp": "^5.36.0"
+        "php": "^8.4"
+    },
+    "require-dev": {
+        "axolotl-pm/pocketmine-mp": "5.51.2",
+        "muqsit/simple-packet-handler": "0.1.10",
+        "phpstan/phpstan": "^2.3"
+    },
+    "config": {
+        "platform": {
+            "php": "8.4.0"
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "analyse": "phpstan analyse --no-progress"
     },
     "extra": {
         "virion": {
