@@ -1,0 +1,51 @@
+name: Build and analyse Commando
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyse:
+    name: PHPStan max
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out Commando
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check out Axolotl-PM PHP setup helper
+        uses: actions/checkout@v7
+        with:
+          repository: axolotl-pm/setup-php-action
+          ref: 1.0.0
+          path: .devtools-dependencies/setup-php-action
+          persist-credentials: false
+
+      - name: Set up Axolotl-PM PHP 8.4
+        shell: bash
+        env:
+          INPUT_PHP-VERSION: "8.4"
+          INPUT_PM-VERSION-MAJOR: "5"
+          INPUT_INSTALL-PATH: ./.php-bin
+        run: node "$GITHUB_WORKSPACE/.devtools-dependencies/setup-php-action/dist/index.js"
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - name: Install locked dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Analyse source at max level
+        run: composer analyse
+
+  build:
+    name: Build virion PHAR
+    uses: AxolotlBucketLabs/DevTools/.github/workflows/build-virion.yml@v4.1.1
+    with:
+      project: .
+      php-version: "8.4"
