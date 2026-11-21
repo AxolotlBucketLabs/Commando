@@ -30,6 +30,7 @@ declare(strict_types=1);
 namespace CortexPE\Commando\args;
 
 
+use InvalidArgumentException;
 use pocketmine\command\CommandSender;
 use pocketmine\entity\Entity;
 use pocketmine\math\Vector3;
@@ -52,7 +53,7 @@ class Vector3Argument extends BaseArgument {
 		$coords = explode(" ", $testString);
 		if(count($coords) === 3) {
 			foreach($coords as $coord) {
-				if(!$this->isValidCoordinate($coord, $sender instanceof Vector3)) {
+				if(!$this->isValidCoordinate($coord, $sender instanceof Entity)) {
 					return false;
 				}
 			}
@@ -69,6 +70,9 @@ class Vector3Argument extends BaseArgument {
 
 	public function parse(string $argument, CommandSender $sender) : Vector3{
 		$coords = explode(" ", $argument);
+		if(count($coords) !== 3){
+			throw new InvalidArgumentException("Expected exactly three coordinates.");
+		}
 		$vals = [];
 		foreach($coords as $k => $coord){
 			$offset = 0;

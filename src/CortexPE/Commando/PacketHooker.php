@@ -46,6 +46,7 @@ use pocketmine\network\mcpe\protocol\types\command\CommandOverload;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
+use function array_values;
 use function spl_object_id;
 
 class PacketHooker implements Listener {
@@ -67,6 +68,9 @@ class PacketHooker implements Listener {
 		$interceptor->interceptOutgoing(function(AvailableCommandsPacket $pk, NetworkSession $target) : bool{
 			if(self::$isIntercepting)return true;
 			$p = $target->getPlayer();
+			if($p === null){
+				return true;
+			}
 			$disassembled = AvailableCommandsPacketDisassembler::disassemble($pk);
 			$commandDataList = $disassembled->commandData;
 			foreach($commandDataList as $commandData) {
@@ -83,7 +87,7 @@ class PacketHooker implements Listener {
 			}
 			self::$isIntercepting = true;
 			//TODO: passing all soft enums here is probably not necessary? they should be referenced by the command parameters already
-			$target->sendDataPacket(AvailableCommandsPacketAssembler::assemble($commandDataList, [], SoftEnumStore::getEnums()));
+			$target->sendDataPacket(AvailableCommandsPacketAssembler::assemble($commandDataList, [], array_values(SoftEnumStore::getEnums())));
 			self::$isIntercepting = false;
 			return false;
 		});
@@ -95,7 +99,7 @@ class PacketHooker implements Listener {
 	 * @param CommandSender $cs
 	 * @param BaseCommand $command
 	 *
-	 * @return CommandOverload[][]
+	 * @return list<CommandOverload>
 	 */
 	private static function generateOverloads(CommandSender $cs, BaseCommand $command): array {
 		$overloads = [];
@@ -136,7 +140,7 @@ class PacketHooker implements Listener {
 	/**
 	 * @param IArgumentable $argumentable
 	 *
-	 * @return CommandOverload[]
+	 * @return list<CommandOverload>
 	 */
 	private static function generateOverloadList(IArgumentable $argumentable): array {
 		$input = $argumentable->getArgumentList();

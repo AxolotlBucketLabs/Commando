@@ -42,7 +42,7 @@ abstract class BaseSubCommand implements IArgumentable, IRunnable {
 	use ArgumentableTrait;
 	/** @var string */
 	private string $name;
-	/** @var string[] */
+	/** @var list<string> */
 	private array $aliases;
 	/** @var string */
 	private string $description;
@@ -57,6 +57,7 @@ abstract class BaseSubCommand implements IArgumentable, IRunnable {
 	/** @var BaseConstraint[] */
 	private array $constraints = [];
 
+	/** @param list<string> $aliases */
 	public function __construct(string $name, string $description = "", array $aliases = []) {
 		$this->name = $name;
 		$this->description = $description;
@@ -67,6 +68,7 @@ abstract class BaseSubCommand implements IArgumentable, IRunnable {
 		$this->usageMessage = $this->generateUsageMessage();
 	}
 
+	/** @param array<string, mixed> $args */
 	abstract public function onRun(CommandSender $sender, string $aliasUsed, array $args): void;
 
 	/**
@@ -152,6 +154,7 @@ abstract class BaseSubCommand implements IArgumentable, IRunnable {
 		$this->parent = $parent;
 	}
 
+	/** @param array<string, string|int> $args */
 	public function sendError(int $errorCode, array $args = []): void {
 		$this->parent->sendError($errorCode, $args);
 	}

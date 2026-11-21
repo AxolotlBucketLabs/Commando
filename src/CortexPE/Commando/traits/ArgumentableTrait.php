@@ -42,9 +42,9 @@ use function is_array;
 use function usort;
 
 trait ArgumentableTrait{
-	/** @var BaseArgument[][] */
+	/** @var array<int, list<BaseArgument>> */
 	private array $argumentList = []; // [argumentPosition => [...possible BaseArgument(s)]]
-	/** @var bool[] */
+	/** @var array<int, true> */
 	private array $requiredArgumentCount = [];
 
 	/**
@@ -79,15 +79,17 @@ trait ArgumentableTrait{
 		}
 	}
 
+	/**
+	 * @param list<string> $rawArgs
+	 * @return array{arguments: array<string, mixed>, errors: list<array{code: int, data: array<string, string|int>}>}
+	 */
 	public function parseArguments(array $rawArgs, CommandSender $sender): array {
-		$return = [
-			"arguments" => [],
-			"errors" => []
-		];
+		$parsedArguments = [];
+		$errors = [];
 		// try parsing arguments
 		$required = count($this->requiredArgumentCount);
 		if(!$this->hasArguments() && count($rawArgs) > 0) { // doesnt take args but sender gives args anyways
-			$return["errors"][] = [
+			$errors[] = [
 				"code" => BaseCommand::ERR_NO_ARGUMENTS,
 				"data" => []
 			];
@@ -95,16 +97,25 @@ trait ArgumentableTrait{
 		$offset = 0;
 		if(count($rawArgs) > 0) {
 			foreach($this->argumentList as $pos => $possibleArguments) {
-				// try the one that spans more first... before the others
+				// Try the largest finite span first and let unbounded arguments consume the remainder last.
 				usort($possibleArguments, function (BaseArgument $a, BaseArgument $b): int {
-					if($a->getSpanLength() === PHP_INT_MAX) { // if it takes unlimited arguments, pull it down
+					$spanA = $a->getSpanLength();
+					$spanB = $b->getSpanLength();
+					if($spanA === $spanB){
+						return 0;
+					}
+					if($spanA === PHP_INT_MAX){
 						return 1;
 					}
+					if($spanB === PHP_INT_MAX){
+						return -1;
+					}
 
-					return -1;
+					return $spanB <=> $spanA;
 				});
 				$parsed = false;
 				$optional = true;
+				$arg = "";
 				foreach($possibleArguments as $argument) {
 					$arg = trim(implode(" ", array_slice($rawArgs, $offset, ($len = $argument->getSpanLength()))));
 					if(!$argument->isOptional()) {
@@ -113,13 +124,13 @@ trait ArgumentableTrait{
 					if($arg !== "" && $argument->canParse($arg, $sender)) {
 						$k = $argument->getName();
 						$result = (clone $argument)->parse($arg, $sender);
-						if(isset($return["arguments"][$k]) && !is_array($return["arguments"][$k])) {
-							$old = $return["arguments"][$k];
-							unset($return["arguments"][$k]);
-							$return["arguments"][$k] = [$old];
-							$return["arguments"][$k][] = $result;
+						if(isset($parsedArguments[$k]) && !is_array($parsedArguments[$k])) {
+							$old = $parsedArguments[$k];
+							unset($parsedArguments[$k]);
+							$parsedArguments[$k] = [$old];
+							$parsedArguments[$k][] = $result;
 						} else {
-							$return["arguments"][$k] = $result;
+							$parsedArguments[$k] = $result;
 						}
 						if(!$optional) {
 							$required--;
@@ -133,7 +144,7 @@ trait ArgumentableTrait{
 					}
 				}
 				if(!$parsed && !($optional && empty($arg))) { // we tried every other possible argument type, none was satisfied
-					$return["errors"][] = [
+					$errors[] = [
 						"code" => BaseCommand::ERR_INVALID_ARG_VALUE,
 						"data" => [
 							"value" => $rawArgs[$offset] ?? "",
@@ -141,24 +152,24 @@ trait ArgumentableTrait{
 						]
 					];
 
-					return $return; // let's break it here.
+					return ["arguments" => $parsedArguments, "errors" => $errors]; // let's break it here.
 				}
 			}
 		}
 		if($offset < count($rawArgs)) { // this means that the arguments our user sent is more than the needed amount
-			$return["errors"][] = [
+			$errors[] = [
 				"code" => BaseCommand::ERR_TOO_MANY_ARGUMENTS,
 				"data" => []
 			];
 		}
 		if($required > 0) {// We still have more unfilled required arguments
-			$return["errors"][] = [
+			$errors[] = [
 				"code" => BaseCommand::ERR_INSUFFICIENT_ARGUMENTS,
 				"data" => []
 			];
 		}
 
-		return $return;
+		return ["arguments" => $parsedArguments, "errors" => $errors];
 	}
 
 	public function generateUsageMessage(): string {

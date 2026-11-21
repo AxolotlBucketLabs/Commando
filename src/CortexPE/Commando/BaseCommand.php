@@ -76,6 +76,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 
 	/** @var Plugin */
 	private Plugin $plugin;
+	private string $generatedUsageMessage;
 
 	public function __construct(
 		Plugin $plugin,
@@ -93,19 +94,19 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 			$usages[] = $subCommand->getUsageMessage();
 		}
 		$usages = array_unique($usages);
-		$this->usageMessage = implode("\n - /" . $this->getName() . " ", $usages);
+		$this->generatedUsageMessage = implode("\n - /" . $this->getName() . " ", $usages);
+		$this->usageMessage = $this->generatedUsageMessage;
 	}
 
 	public function getOwningPlugin(): Plugin {
 		return $this->plugin;
 	}
 
-	final public function execute(CommandSender $sender, string $commandLabel, array $args){
+	final public function execute(CommandSender $sender, string $commandLabel, array $args): void {
 		$this->currentSender = $sender;
 		if(!$this->testPermission($sender)){
 			return;
 		}
-		/** @var BaseCommand|BaseSubCommand $cmd */
 		$cmd = $this;
 		$passArgs = [];
 		if(count($args) > 0){
@@ -147,12 +148,10 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 	}
 
 	/**
-	 * @param ArgumentableTrait $ctx
-	 * @param array             $args
-	 *
-	 * @return array|null
+	 * @param list<string> $args
+	 * @return array<string, mixed>|null
 	 */
-	private function attemptArgumentParsing($ctx, array $args): ?array {
+	private function attemptArgumentParsing(IArgumentable $ctx, array $args): ?array {
 		$dat = $ctx->parseArguments($args, $this->currentSender);
 		if(!empty(($errors = $dat["errors"]))) {
 			foreach($errors as $error) {
@@ -165,17 +164,14 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 		return $dat["arguments"];
 	}
 
-	/**
-	 * @param CommandSender  $sender
-	 * @param string         $aliasUsed
-	 * @param array|array<string,mixed|array<mixed>> $args
-	 */
+	/** @param array<string, mixed> $args */
 	abstract public function onRun(CommandSender $sender, string $aliasUsed, array $args): void;
 
 	protected function sendUsage(): void {
-		$this->currentSender->sendMessage("Usage: " . $this->getUsage());
+		$this->currentSender->sendMessage("Usage: " . $this->getUsageMessage());
 	}
 
+	/** @param array<string, string|int> $args */
 	public function sendError(int $errorCode, array $args = []): void {
 		$str = $this->errorMessages[$errorCode];
 		foreach($args as $item => $value) {
@@ -191,6 +187,7 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 		$this->errorMessages[$errorCode] = $format;
 	}
 
+	/** @param array<int, string> $errorFormats */
 	public function setErrorFormats(array $errorFormats): void {
 		foreach($errorFormats as $errorCode => $format) {
 			$this->setErrorFormat($errorCode, $format);
@@ -230,6 +227,6 @@ abstract class BaseCommand extends Command implements IArgumentable, IRunnable, 
 	}
 
 	public function getUsageMessage(): string {
-		return $this->getUsage();
+		return $this->generatedUsageMessage;
 	}
 }

@@ -40,6 +40,7 @@ use function preg_match;
 use function strtolower;
 
 abstract class StringEnumArgument extends BaseArgument {
+	/** @var array<string, mixed> */
 	protected const VALUES = [];
 
 	public function __construct(string $name, bool $optional = false) {
@@ -55,15 +56,16 @@ abstract class StringEnumArgument extends BaseArgument {
 
 	public function canParse(string $testString, CommandSender $sender): bool {
 		return (bool)preg_match(
-			"/^(" . implode("|", array_map("\\strtolower", $this->getEnumValues())) . ")$/iu",
+			"/^(" . implode("|", array_map(strtolower(...), $this->getEnumValues())) . ")$/iu",
 			$testString
 		);
 	}
 
-	public function getValue(string $string) {
+	public function getValue(string $string): mixed {
 		return static::VALUES[strtolower($string)];
 	}
 
+	/** @return list<string> */
 	public function getEnumValues(): array {
 		return array_keys(static::VALUES);
 	}

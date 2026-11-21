@@ -1,35 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 
 namespace CortexPE\Commando\store;
 
 
 use CortexPE\Commando\exception\CommandoException;
+use pocketmine\network\mcpe\NetworkBroadcastUtils;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\types\command\CommandSoftEnum;
 use pocketmine\network\mcpe\protocol\UpdateSoftEnumPacket;
 use pocketmine\Server;
 
 class SoftEnumStore {
-	/** @var CommandSoftEnum[] */
+	/** @var array<string, CommandSoftEnum> */
 	private static array $enums = [];
 
 	public static function getEnumByName(string $name):?CommandSoftEnum {
-		return static::$enums[$name] ?? null;
+		return self::$enums[$name] ?? null;
 	}
 
 	/**
 	 * @return CommandSoftEnum[]
 	 */
 	public static function getEnums(): array {
-		return static::$enums;
+		return self::$enums;
 	}
 
 	public static function addEnum(CommandSoftEnum $enum):void {
-		static::$enums[$enum->getName()] = $enum;
+		self::$enums[$enum->getName()] = $enum;
 		self::broadcastSoftEnum($enum, UpdateSoftEnumPacket::TYPE_ADD);
 	}
 
+	/** @param list<string> $values */
 	public static function updateEnum(string $enumName, array $values):void {
 		if(self::getEnumByName($enumName) === null){
 			throw new CommandoException("Unknown enum named " . $enumName);
@@ -42,7 +46,7 @@ class SoftEnumStore {
 		if(($enum = self::getEnumByName($enumName)) === null){
 			throw new CommandoException("Unknown enum named " . $enumName);
 		}
-		unset(static::$enums[$enumName]);
+		unset(self::$enums[$enumName]);
 		self::broadcastSoftEnum($enum, UpdateSoftEnumPacket::TYPE_REMOVE);
 	}
 
@@ -55,6 +59,6 @@ class SoftEnumStore {
 	}
 
 	private static function broadcastPacket(ClientboundPacket $pk):void {
-		($sv = Server::getInstance())->broadcastPackets($sv->getOnlinePlayers(), [$pk]);
+		NetworkBroadcastUtils::broadcastPackets(Server::getInstance()->getOnlinePlayers(), [$pk]);
 	}
 }
