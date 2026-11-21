@@ -147,7 +147,7 @@ trait ArgumentableTrait{
 					$errors[] = [
 						"code" => BaseCommand::ERR_INVALID_ARG_VALUE,
 						"data" => [
-							"value" => $rawArgs[$offset] ?? "",
+							"value" => $arg,
 							"position" => $pos + 1
 						]
 					];
