@@ -70,7 +70,7 @@ $this->getServer()->getCommandMap()->register(
 );
 ```
 
-Arguments are passed to `onRun()` as a map from argument name to parsed value. Optional arguments are omitted when the sender does not provide them. `TextArgument` consumes the rest of the input. Commando also provides integer, float, boolean, vector, block position, and string enum arguments. A `StringEnumArgument` subclass can pass a plugin-scoped enum name as the third constructor argument to control its client enum name. Use `SoftEnumArgument` for values that should appear as client suggestions while still allowing other input.
+Arguments are passed to `onRun()` as a map from argument name to parsed value. Optional arguments are omitted when the sender does not provide them. `TextArgument` consumes the rest of the input. Commando also provides integer, float, boolean, vector, block position, string enum, and item arguments. `ItemArgument` parses aliases registered with PocketMine's `StringToItemParser` into `Item` instances. A `StringEnumArgument` subclass can pass a plugin-scoped enum name as the third constructor argument to control its client enum name. Use `SoftEnumArgument` for values that should appear as client suggestions while still allowing other input.
 
 Register a soft enum with a unique, plugin-scoped name before registering commands that use it. Update the stored values when the suggestions change:
 
