@@ -28,11 +28,11 @@
         "psr-4": {"CortexPE\\Commando\\": ["src/CortexPE/Commando/"]}
     },
     "require": {
-        "php": "^8.4"
+        "php": "^8.4",
+        "muqsit/simple-packet-handler": "^0.1.10"
     },
     "require-dev": {
         "axolotl-pm/pocketmine-mp": "5.51.2",
-        "muqsit/simple-packet-handler": "0.1.10",
         "phpstan/phpstan": "^2.3"
     },
     "config": {
