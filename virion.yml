@@ -1,5 +1,9 @@
 name: Commando
 antigen: CortexPE\Commando
-api: 5.36.0
+api: 5.51.2
+php: "8.4"
 version: 3.3.0
-author: CortexPE
+authors: [AxolotlBucketLabs, CortexPE]
+virions:
+  - name: PacketHandler
+    version: 0.1.10
