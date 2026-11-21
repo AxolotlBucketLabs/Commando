@@ -70,7 +70,23 @@ $this->getServer()->getCommandMap()->register(
 );
 ```
 
-Arguments are passed to `onRun()` as a map from argument name to parsed value. Optional arguments are omitted when the sender does not provide them. `TextArgument` consumes the rest of the input. Commando also provides integer, float, boolean, vector, block position, and string enum arguments.
+Arguments are passed to `onRun()` as a map from argument name to parsed value. Optional arguments are omitted when the sender does not provide them. `TextArgument` consumes the rest of the input. Commando also provides integer, float, boolean, vector, block position, and string enum arguments. Use `SoftEnumArgument` for values that should appear as client suggestions while still allowing other input.
+
+Register a soft enum with a unique, plugin-scoped name before registering commands that use it. Update the stored values when the suggestions change:
+
+```php
+use CortexPE\Commando\args\SoftEnumArgument;
+use CortexPE\Commando\store\SoftEnumStore;
+use pocketmine\network\mcpe\protocol\types\command\CommandSoftEnum;
+
+SoftEnumStore::addEnum(new CommandSoftEnum("example.warps", ["spawn", "shop"]));
+
+// In the command's prepare() method:
+$this->registerArgument(0, new SoftEnumArgument("warp", "example.warps"));
+
+// Refresh the suggestions when they change:
+SoftEnumStore::updateEnum("example.warps", ["spawn", "shop", "arena"]);
+```
 
 Use `BaseSubCommand` for subcommands. Add `BaseConstraint` implementations to restrict who can run a command or see it in client command suggestions. Use `sendUsage()` and `setErrorFormat()` to customize feedback.
 

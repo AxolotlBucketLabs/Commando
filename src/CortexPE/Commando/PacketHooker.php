@@ -44,6 +44,7 @@ use pocketmine\network\mcpe\protocol\serializer\AvailableCommandsPacketDisassemb
 use pocketmine\network\mcpe\protocol\types\command\CommandHardEnum;
 use pocketmine\network\mcpe\protocol\types\command\CommandOverload;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
+use pocketmine\network\mcpe\protocol\types\command\CommandSoftEnum;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use function array_values;
@@ -156,6 +157,9 @@ class PacketHooker implements Listener {
 			foreach($indexes as $k => $index){
 				$param = $set[$k] = clone $input[$k][$index]->getNetworkParameterData();
 
+				if($param->enum instanceof CommandSoftEnum){
+					$param->enum = SoftEnumStore::getEnumByName($param->enum->getName()) ?? $param->enum;
+				}
 				if(isset($param->enum) && $param->enum instanceof CommandHardEnum){
 					//TODO: This hack is not needed on PM's account as of 5.36.0, but since enums are initialised
 					//with an empty name in StringEnumArgument (and I don't know why), it's best to preserve the
