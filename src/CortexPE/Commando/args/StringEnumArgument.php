@@ -43,10 +43,10 @@ abstract class StringEnumArgument extends BaseArgument {
 	/** @var array<string, mixed> */
 	protected const VALUES = [];
 
-	public function __construct(string $name, bool $optional = false) {
+	public function __construct(string $name, bool $optional = false, ?string $enumName = null) {
 		parent::__construct($name, $optional);
 
-		$this->parameterData = CommandParameter::enum($name, new CommandHardEnum("", $this->getEnumValues()), 0, $optional);
+		$this->parameterData = CommandParameter::enum($name, new CommandHardEnum($enumName ?? "", $this->getEnumValues()), 0, $optional);
 	}
 
 	public function getNetworkType(): int {

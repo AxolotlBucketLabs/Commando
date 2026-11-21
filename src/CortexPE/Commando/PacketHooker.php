@@ -160,7 +160,7 @@ class PacketHooker implements Listener {
 				if($param->enum instanceof CommandSoftEnum){
 					$param->enum = SoftEnumStore::getEnumByName($param->enum->getName()) ?? $param->enum;
 				}
-				if(isset($param->enum) && $param->enum instanceof CommandHardEnum){
+				if($param->enum instanceof CommandHardEnum && $param->enum->getName() === ""){
 					//TODO: This hack is not needed on PM's account as of 5.36.0, but since enums are initialised
 					//with an empty name in StringEnumArgument (and I don't know why), it's best to preserve the
 					//original behaviour
