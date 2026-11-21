@@ -1,106 +1,91 @@
-<h1>Commando<img src="https://raw.githubusercontent.com/CortexPE/Commando/master/commando.png" height="64" width="64" align="left"></img>&nbsp;<img src="https://poggit.pmmp.io/ci.shield/CortexPE/Commando/~"></img></h1>
-<br />
+# Commando
 
-A PocketMine-MP Virion for easier implementation of dynamic commands, including support for Minecraft: Bedrock Edition argument listing aimed for both the end users and the plugin developers.
+Commando is a command framework virion for Axolotl-PM. It parses named arguments, validates input, supports subcommands and constraints, and adds argument data to the commands sent to Bedrock clients.
 
-# Usage:
-Installation is easy, you may get a compiled phar [here](https://poggit.pmmp.io/ci/CortexPE/Commando/~), integrate the virion itself into your plugin or you could also use it as a composer library by running the command below:
+[![Build and analyse](https://github.com/CortexPE/Commando/actions/workflows/build.yml/badge.svg)](https://github.com/CortexPE/Commando/actions/workflows/build.yml)
+[![License](https://img.shields.io/github/license/CortexPE/Commando)](LICENSE)
 
-`composer require cortexpe/commando`
+## Requirements
 
-This virion is purely object oriented. So, to use it you'll have to extend the `BaseCommand` object, import the `PacketHooker` object and the optional objects for subcommands and arguments (whenever necessary).
+| Component | Requirement |
+| --- | --- |
+| PHP | 8.4 or newer |
+| Axolotl-PM | API 5.51.2 |
+| PacketHandler | Virion `PacketHandler` version `0.1.10` |
 
-For PocketMine-MP API 4, you will need to include [Muqsit/SimplePacketHandler](https://github.com/Muqsit/SimplePacketHandler) in your dependencies.
+Commando is a library, not a standalone plugin. Include it and its declared `PacketHandler` dependency in the consumer plugin's build. The library manifest declares that dependency in `virion.yml`.
 
-# Why is this necessary?
-The virion provides an easy way to verify user input, convert user input, and for making sure that our arguments are the type that we expect it to.
+## Install with DevTools
 
-On the plus side, it also provides the argument list for the client to recognize making it easy to use the command without remembering the order of arguments.
+Place the Commando source folder under the server's `virions/` directory. Add the matching `PacketHandler` source folder under `virions/PacketHandler/`. Declare Commando in the consumer plugin's `devtools.yml`:
 
-Because not only MC: Bedrock can use the commands, I've also implemented command usage pre-generation for ease of use with the console as well.
+```yaml
+virions:
+  - name: Commando
+    version: "3.3.0"
+```
 
-This also provides an easy to use API for lessening boilerplate code while adding more functionality and verbosity (error codes, and error lists, and sending usage messages).
+DevTools checks the dependency declared by Commando and loads the compatible virion set. See the DevTools [shared virion guide](https://github.com/AxolotlBucketLabs/DevTools/blob/v4.1.1/docs/shared-virions.md) for Composer based builds and dependency preparation.
 
-It is structured in a similar way to the legacy PocketMine commands for ease of migration from an older codebase.
+## Register the packet hook
 
-**Upon the time of writing this readme file, This virion will be used on [Hierarchy](https://github.com/CortexPE/Hierarchy) for the command implementation clean-up**
+Register `PacketHooker` once during plugin startup. The hook adds Commando's argument metadata to the `AvailableCommandsPacket` sent to clients.
 
-## Basic Usage:
+```php
+use CortexPE\Commando\PacketHooker;
 
-***NOTE: Other miscellaneous functions can be indexed within your IDEs or by reading the source code. This is only the basic usage of the virion, it does not show every aspect of it as that'd be too long to document.***
+if (!PacketHooker::isRegistered()) {
+    PacketHooker::register($this);
+}
+```
 
-### Create your command class
-In our command class, we need to extend `BaseCommand` and implement its required methods to use all of Commando's features.
+## Define and register a command
+
+Extend `BaseCommand`, register arguments in `prepare()`, and handle the parsed values in `onRun()`.
+
 ```php
 <?php
 
+use CortexPE\Commando\args\RawStringArgument;
 use CortexPE\Commando\BaseCommand;
 use pocketmine\command\CommandSender;
 
-class MyCommand extends BaseCommand {
+final class GreetCommand extends BaseCommand {
 	protected function prepare(): void {
-		// This is where we'll register our arguments and subcommands
+		$this->registerArgument(0, new RawStringArgument("name"));
 	}
-	
+
 	public function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
-		// This is where the processing will occur if it's NOT handled by other subcommands
+		$sender->sendMessage("Hello, " . $args["name"] . "!");
 	}
 }
 ```
 
-### Register the arguments
-If we register arguments, we need to import and use / extend (if needed) the provided argument objects.
-```php
-use CortexPE\Commando\args\RawStringArgument;
+Register the command from your plugin's `onEnable()` method:
 
-	protected function prepare(): void {
-		// $this->registerArgument(position, argument object (name, isOptional));
-		$this->registerArgument(0, new RawStringArgument("name", true));
-	}
+```php
+$this->getServer()->getCommandMap()->register(
+	"example",
+	new GreetCommand($this, "greet", "Greet a player.")
+);
 ```
 
-### Handling our arguments
-The arguments passed on our `onRun` method will be mapped by `name => value` this makes it easy to understand which argument is which, instead of using numeric indices. It is also guaranteed that the arguments passed will be the declared type that we've set.
-```php
-	public function onRun(CommandSender $sender, string $aliasUsed, array $args): void {
-		if(isset($args["name"])){
-			$sender->sendMessage("Hello, " . $args["name"] . "!");
-		} else {
-			$this->sendUsage();
-		}
-	}
+Arguments are passed to `onRun()` as a map from argument name to parsed value. Optional arguments are omitted when the sender does not provide them. `TextArgument` consumes the rest of the input. Commando also provides integer, float, boolean, vector, block position, and string enum arguments.
+
+Use `BaseSubCommand` for subcommands. Add `BaseConstraint` implementations to restrict who can run a command or see it in client command suggestions. Use `sendUsage()` and `setErrorFormat()` to customize feedback.
+
+## Build
+
+The GitHub Actions workflow uses AxolotlBucketLabs DevTools `v4.1.1` to build and inspect a virion PHAR. It runs PHPStan at `max` against the locked Axolotl-PM `5.51.2` source and uploads the PHAR as a workflow artifact. The workflow does not publish a GitHub release.
+
+To build from an Axolotl-PM server with DevTools installed, run:
+
+```text
+/devtools build virion Commando
 ```
 
-### Registering the `PacketHooker` for vanilla command arguments
-The `PacketHooker` listener is required for us to be able to inject data to the `AvailableCommandsPacket` the server sends.
-```php
-use CortexPE\Commando\PacketHooker;
+The server writes the artifact to `build/Commando.phar`.
 
-// onEnable:
-	if(!PacketHooker::isRegistered()) {
-		PacketHooker::register($this);
-	}
-```
+## License
 
-### Registering the command from a plugin
-Once we've constructed our command with our arguments and subcommands, we can now register our command to PocketMine's command map, to be available to our users.
-```php
-// onEnable:
-$this->getServer()->getCommandMap()->register("myplugin", new MyCommand($this, "greet", "Make the server greet you!"));
-```
-The only difference with using this framework is that you don't need to set the usage message, as they are pre-generated after all the arguments have been registered.
-
-### SubCommands
-Subcommands work the same way as regular commands, the only difference is that they're registered on the parent command with `BaseCommand->registerSubCommand()` having their own set of arguments and own usage message.
-
-### Error messages
-The virion provides default error messages for user input errors regarding the arguments given. It also provides a way to register your own error message formats for the sake of customizability.
-```php
-$cmdCtx->setErrorFormat($errorCode, $format);
-// Arrays can be passed on `BaseCommand->setErrorFormats()` to bulk-set other error messages
-```
-The error messages are sent in bulk to the users to let them know what parts are wrong with their input, not having to do trial-and-error.
-*A current limitation is that, you cannot register your own error messages with other error codes.*
-
------
-**This framework was made with :heart: by CortexPE, Enjoy!~ :3**
+Commando is distributed under the GNU Lesser General Public License v3.0 or later. See [LICENSE](LICENSE).
