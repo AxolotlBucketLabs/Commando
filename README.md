@@ -3,6 +3,7 @@
 Commando is a command framework virion for Axolotl-PM. It parses named arguments, validates input, supports subcommands and constraints, and adds argument data to the commands sent to Bedrock clients.
 
 [![Build](https://github.com/AxolotlBucketLabs/Commando/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/AxolotlBucketLabs/Commando/actions/workflows/build.yml)
+[![Latest release](https://img.shields.io/github/v/release/AxolotlBucketLabs/Commando)](https://github.com/AxolotlBucketLabs/Commando/releases/latest)
 [![License](https://img.shields.io/github/license/AxolotlBucketLabs/Commando?label=License)](LICENSE)
 [![Discord](https://img.shields.io/discord/1568295845374206052?label=Discord&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/Pk4FrNvHnM)
 
