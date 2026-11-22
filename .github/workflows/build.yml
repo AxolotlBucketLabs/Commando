@@ -45,7 +45,8 @@ jobs:
 
   build:
     name: Build virion PHAR
-    uses: AxolotlBucketLabs/DevTools/.github/workflows/build-virion.yml@v4.1.1
+    uses: AxolotlBucketLabs/DevTools/.github/workflows/build-plugin.yml@v4.1.1
     with:
+      type: virion
       project: .
       php-version: "8.4"
