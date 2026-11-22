@@ -2,8 +2,9 @@
 
 Commando is a command framework virion for Axolotl-PM. It parses named arguments, validates input, supports subcommands and constraints, and adds argument data to the commands sent to Bedrock clients.
 
-[![Build and analyse](https://github.com/CortexPE/Commando/actions/workflows/build.yml/badge.svg)](https://github.com/CortexPE/Commando/actions/workflows/build.yml)
-[![License](https://img.shields.io/github/license/CortexPE/Commando)](LICENSE)
+[![Build](https://github.com/AxolotlBucketLabs/Commando/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/AxolotlBucketLabs/Commando/actions/workflows/build.yml)
+[![License](https://img.shields.io/github/license/AxolotlBucketLabs/Commando?label=License)](LICENSE)
+[![Discord](https://img.shields.io/discord/1568295845374206052?label=Discord&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/Pk4FrNvHnM)
 
 ## Requirements
 
@@ -70,7 +71,7 @@ $this->getServer()->getCommandMap()->register(
 );
 ```
 
-Arguments are passed to `onRun()` as a map from argument name to parsed value. Optional arguments are omitted when the sender does not provide them. `TextArgument` consumes the rest of the input. Commando also provides integer, float, boolean, vector, block position, string enum, and item arguments. `ItemArgument` parses aliases registered with PocketMine's `StringToItemParser` into `Item` instances. A `StringEnumArgument` subclass can pass a plugin-scoped enum name as the third constructor argument to control its client enum name. Use `SoftEnumArgument` for values that should appear as client suggestions while still allowing other input.
+Arguments are passed to `onRun()` as a map from argument name to parsed value. Optional arguments are omitted when the sender does not provide them. `TextArgument` consumes the rest of the input. Commando also provides integer, float, boolean, vector, block position, string enum, and item arguments. `ItemArgument` parses aliases registered with Axolotl-PM's `StringToItemParser` into `Item` instances. A `StringEnumArgument` subclass can pass a plugin-scoped enum name as the third constructor argument to control its client enum name. Use `SoftEnumArgument` for values that should appear as client suggestions while still allowing other input.
 
 Register a soft enum with a unique, plugin-scoped name before registering commands that use it. Update the stored values when the suggestions change:
 
@@ -104,4 +105,4 @@ The server writes the artifact to `build/Commando.phar`.
 
 ## License
 
-Commando is distributed under the GNU Lesser General Public License v3.0 or later. See [LICENSE](LICENSE).
+Commando is distributed under the GNU Lesser General Public License v3.0 only. See [LICENSE](LICENSE).
